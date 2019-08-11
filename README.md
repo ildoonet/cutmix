@@ -28,12 +28,14 @@ TODO
 
 ### PyramidNet-200 + ShakeDrop + **CutMix** \w CIFAR-100
 
-|                                 | Top-1 Error | Model File |
-|---------------------------------|------------:|------------|
-| Paper's Reported Result         | 13.81       | N/A        |
-| Our Re-implementation           | 13.21       | 
+|                                 | Top-1 Error(@300epoch) | Top-1 Error(Best) | Model File |
+|---------------------------------|------------:|------------|------------|
+| Paper's Reported Result         | N/A         | 13.81      | N/A        |
+| Our Re-implementation           | 13.76       | 13.21      | TODO       |
 
-We ran 5 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24, 13.15, using below command.
+We ran 5 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24 and 13.15, using below command.
+(Converged at 300epoch with the top-1 errors of 13.55, 13.66, 13.95, 13.9 and  13.8.)
+
 
 ```
 $ python train.py -c conf/cifar100_pyramid200.yaml
