@@ -9,6 +9,8 @@ This re-implementation is improved in some parts,
 - [issue #4] lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
 - (TODO) Easy to install and use on your existing project.
 
+Hence, there may be slightly-improved training results also.
+
 ## Requirements
 
 - python3
@@ -24,7 +26,7 @@ TODO
 
 ## Result
 
-### PyramidNet-200 + ShakeDrop + *CutMix* \w CIFAR-100
+### PyramidNet-200 + ShakeDrop + **CutMix** \w CIFAR-100
 
 |                                 | Top-1 Error | Model File |
 |---------------------------------|------------:|------------|
@@ -37,7 +39,7 @@ We ran 5 indenpendent experiments with our re-implemented codes and got top-1 er
 $ python train.py -c conf/cifar100_pyramid200.yaml
 ```
 
-### ResNet + *CutMix* \w ImageNet
+### ResNet + **CutMix** \w ImageNet
 
 TODO
 
