@@ -1,15 +1,15 @@
-# pytorch-cutmix
+# cutmix
 
 a Ready-to-use PyTorch Extension of Unofficial CutMix Implementations.
 
 This re-implementation is improved in some parts,
 
 - Fixing [issue #1](https://github.com/clovaai/CutMix-PyTorch/issues/1) in the original repository
-- [issue #3] Random crop regions are randomly chosen, even within the same batch.
-- [issue #4] lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
+- [issue #3](https://github.com/clovaai/CutMix-PyTorch/issues/3) : Random crop regions are randomly chosen, even within the same batch.
+- [issue #4](https://github.com/clovaai/CutMix-PyTorch/issues/4) : lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
 - (TODO) Easy to install and use on your existing project.
 
-Hence, there may be slightly-improved training results also.
+Hence, there may be **slightly-improved training results** also.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ TODO
 
 ## Result
 
-### PyramidNet-200 + ShakeDrop + **CutMix** \w CIFAR-100
+### PyramidNet-200 + ShakeDrop + *CutMix* \w CIFAR-100
 
 |                                 | Top-1 Error(@300epoch) | Top-1 Error(Best) | Model File |
 |---------------------------------|------------:|------------|------------|
@@ -36,12 +36,11 @@ TODO
 We ran 6 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24, 13.15 and 12.88, using below command.
 (Converged at 300epoch with the top-1 errors of 13.55, 13.66, 13.95, 13.9, 13.8 and 13.32.)
 
-
 ```
 $ python train.py -c conf/cifar100_pyramid200.yaml
 ```
 
-### ResNet + **CutMix** \w ImageNet
+### ResNet + *CutMix* \w ImageNet
 
 TODO
 
