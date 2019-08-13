@@ -33,7 +33,7 @@ TODO
 | Paper's Reported Result         | N/A         | 13.81      | N/A        |
 | Our Re-implementation           | 13.68       | 13.15      | [Download(12.88)](https://www.dropbox.com/s/q4jsyvvhb4y8ys9/model_best.pth.tar?dl=0)       |
 
-We ran 5 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24, 13.15 and 12.88, using below command.
+We ran 6 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24, 13.15 and 12.88, using below command.
 (Converged at 300epoch with the top-1 errors of 13.55, 13.66, 13.95, 13.9, 13.8 and 13.32.)
 
 
