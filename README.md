@@ -6,7 +6,8 @@ This re-implementation is improved in some parts,
 
 - Fixing [issue #1](https://github.com/clovaai/CutMix-PyTorch/issues/1) in the original repository
 - [issue #3](https://github.com/clovaai/CutMix-PyTorch/issues/3) : Random crop regions are randomly chosen, even within the same batch.
-- [issue #4](https://github.com/clovaai/CutMix-PyTorch/issues/4) : lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
+- [issue #4](https://github.com/clovaai/CutMix-PyTorch/issues/4) : Different lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
+- Images to be cropped are randomly chosen in the whole dataset. Original implementation selects images only inside the same batch(shuffling).
 - (TODO) Easy to install and use on your existing project.
 
 Hence, there may be **slightly-improved training results** also.
