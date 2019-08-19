@@ -41,9 +41,21 @@ We ran 6 indenpendent experiments with our re-implemented codes and got top-1 er
 $ python train.py -c conf/cifar100_pyramid200.yaml
 ```
 
-### ResNet + *CutMix* \w ImageNet
+### ResNet + **CutMix** \w ImageNet
 
-TODO
+|                                 | Top-1 Error(@300epoch) | Top-1 Error(Best) | Model File |
+|---------------------------------|------------:|-----------:|-----------:|
+| Paper's Reported Result         | N/A         | 21.4      | N/A        |
+| Author's Code(Our Re-run)       | 21.768      | 21.586    | N/A        |
+| Our Re-implementation           | 21.524      | 21.340    | [Download(21.25)](https://www.dropbox.com/s/nqell4bh5oj68q1/model_best.pth.tar?dl=0) |
+
+We ran 5 independent experiments. 
+- Author's codes
+  - 300epoch : 21.762, 21.614, 21.762, 21.644, 21.810
+  - best : 21.56, 21.556, 21.666, 21.498, 21.648
+Our Re-implementation
+  - 300epoch : 21.53, 21.408, 21.55, 21.4, 21.73
+  - best : 21.392, 21.328, 21.386, 21.256, 21.34
 
 ## Reference
 

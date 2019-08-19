@@ -32,7 +32,7 @@ def cross_entropy(input, target, size_average=True):
         loss = cross_entropy(input, target)
         loss.backward()
     """
-    logsoftmax = torch.nn.LogSoftmax()
+    logsoftmax = torch.nn.LogSoftmax(dim=1)
     if size_average:
         return torch.mean(torch.sum(-target * logsoftmax(input), dim=1))
     else:

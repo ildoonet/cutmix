@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import shutil
 import time
 
 import torch
@@ -15,8 +14,8 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-import resnet as RN
-import pyramidnet as PYRM
+from network import resnet as RN
+import network.pyramid as PYRM
 
 import warnings
 

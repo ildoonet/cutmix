@@ -1,6 +1,5 @@
 # original code: https://github.com/dyhan0920/PyramidNet-PyTorch/blob/master/train.py
 
-import argparse
 import os
 import shutil
 import time
@@ -18,11 +17,9 @@ import torchvision.models as models
 from theconf.argument_parser import ConfigArgumentParser
 from tqdm._tqdm import tqdm
 
-import resnet as RN
+from network import resnet as RN
 import network.pyramidnet as PYRM
 import utils
-import numpy as np
-
 import warnings
 
 from cutmix.cutmix import CutMix
@@ -35,12 +32,11 @@ model_names = sorted(name for name in models.__dict__
                      and callable(models.__dict__[name]))
 
 parser = ConfigArgumentParser(conflict_handler='resolve')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--expname', default='TEST', type=str,
-                    help='name of experiment')
+parser.add_argument('--expname', default='TEST', type=str, help='name of experiment')
 parser.add_argument('--cifarpath', default='/data/private/pretrainedmodels/', type=str)
-parser.add_argument('--imagenetpath', default='/home/data/ILSVRC/', type=str)
+parser.add_argument('--imagenetpath', default='/data/private/pretrainedmodels/imagenet/', type=str)
 
 parser.set_defaults(bottleneck=True)
 parser.set_defaults(verbose=True)
@@ -73,7 +69,8 @@ def main():
 
         if args.dataset == 'cifar100':
             train_loader = torch.utils.data.DataLoader(
-                CutMix(datasets.CIFAR100(args.cifarpath, train=True, download=True, transform=transform_train), 100, prob=args.cutmix_prob),
+                CutMix(datasets.CIFAR100(args.cifarpath, train=True, download=True, transform=transform_train), 100,
+                       beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num),
                 batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
             val_loader = torch.utils.data.DataLoader(
                 datasets.CIFAR100(args.cifarpath, train=False, transform=transform_test),
@@ -81,7 +78,8 @@ def main():
             numberofclass = 100
         elif args.dataset == 'cifar10':
             train_loader = torch.utils.data.DataLoader(
-                CutMix(datasets.CIFAR10(args.cifarpath, train=True, download=True, transform=transform_train), 10, prob=args.cutmix_prob),
+                CutMix(datasets.CIFAR10(args.cifarpath, train=True, download=True, transform=transform_train), 10,
+                       beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num),
                 batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
             val_loader = torch.utils.data.DataLoader(
                 datasets.CIFAR10(args.cifarpath, train=False, transform=transform_test),
@@ -113,7 +111,7 @@ def main():
                 lighting,
                 normalize,
             ]))
-
+        train_dataset = CutMix(train_dataset, 1000, beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num)
         train_sampler = None
 
         train_loader = torch.utils.data.DataLoader(
@@ -130,7 +128,6 @@ def main():
             batch_size=args.batch_size, shuffle=False,
             num_workers=args.workers, pin_memory=True)
         numberofclass = 1000
-
     else:
         raise Exception('unknown dataset: {}'.format(args.dataset))
 
@@ -231,7 +228,7 @@ def run_epoch(loader, model, criterion, optimizer, epoch, tag):
         loader.set_postfix(lr=current_lr, batch_time=batch_time.avg, data_time=data_time.avg, loss=losses.avg, top1=top1.avg, top5=top5.avg)
 
     if tqdm_disable:
-        print('[%s %03d/%03d] %s', tag, epoch, args.epochs, dict(lr=current_lr, batch_time=batch_time.avg, data_time=data_time.avg, loss=losses.avg, top1=top1.avg, top5=top5.avg))
+        print('[%s %03d/%03d] %s' % (tag, epoch, args.epochs, dict(lr=current_lr, batch_time=batch_time.avg, data_time=data_time.avg, loss=losses.avg, top1=top1.avg, top5=top5.avg)))
 
     return top1.avg, top5.avg, losses.avg
 

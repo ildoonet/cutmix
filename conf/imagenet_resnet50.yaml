@@ -1,0 +1,14 @@
+dataset: imagenet
+net_type: resnet
+depth: 50
+alpha: 240
+
+epochs: 300
+batch_size: 256
+lr: 0.1
+momentum: 0.9
+
+cutmix:
+  beta: 1.0
+  prob: 1.0
+  num: 1
