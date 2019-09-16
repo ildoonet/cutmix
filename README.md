@@ -45,8 +45,8 @@ $ python train.py -c conf/cifar100_pyramid200.yaml
 
 |            |                                 | Top-1 Error(@300epoch) | Top-1 Error(Best) | Model File |
 |------------|---------------------------------|------------:|----------:|-----------:|
-| ResNet18   | Reported Result \wo CutMix      | 30.43       | 10.76     |
-|            | Ours                            | 29.56       | 10.31     | [Download](https://www.dropbox.com/s/jdqqbtrwp6mgk7k/model_best.pth.tar?dl=0) |
+| ResNet18   | Reported Result \wo CutMix      |             | 30.43     |
+|            | Ours                            | 29.674      | 29.56     | [Download](https://www.dropbox.com/s/jdqqbtrwp6mgk7k/model_best.pth.tar?dl=0) |
 | ResNet34   | Reported Result \wo CutMix      |             | 26.456    |            |
 |            | Ours                            | 24.7        | 24.57     | [Download](https://www.dropbox.com/s/lcjfrcqmuoijig3/model_best.pth.tar?dl=0) |
 | ResNet50   | Paper's Reported Result         | N/A         | 21.4      | N/A        |
