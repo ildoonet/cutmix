@@ -9,6 +9,7 @@ This re-implementation is improved in some parts,
 - [issue #4](https://github.com/clovaai/CutMix-PyTorch/issues/4) : Different lambda values(sizes of crop regions) are randomly chosen, even within the same batch.
 - Images to be cropped are randomly chosen in the whole dataset. Original implementation selects images only inside the same batch(shuffling).
 - Easy to install and use on your existing project.
+- With additional augmentations(fast-autoaugment), the performances are improved further.
 
 Hence, there may be **slightly-improved training results** also.
 
@@ -59,6 +60,7 @@ for _ in range(num_epoch):
 |---------------------------------|------------:|------------|------------|
 | Paper's Reported Result         | N/A         | 13.81      | N/A        |
 | Our Re-implementation           | 13.68       | 13.15      | [Download(12.88)](https://www.dropbox.com/s/q4jsyvvhb4y8ys9/model_best.pth.tar?dl=0)       |
+| + Fast AutoAugment              | 13.3        | 12.95      |            |
 
 We ran 6 indenpendent experiments with our re-implemented codes and got top-1 errors of 13.09, 13.29, 13.27, 13.24, 13.15 and 12.88, using below command.
 (Converged at 300epoch with the top-1 errors of 13.55, 13.66, 13.95, 13.9, 13.8 and 13.32.)
@@ -69,7 +71,7 @@ $ python train.py -c conf/cifar100_pyramid200.yaml
 
 ### ResNet + **CutMix** \w ImageNet
 
-|            |                                 | Top-1 Error(@300epoch) | Top-1 Error(Best) | Model File |
+|            |                                 | Top-1 Error<br/>(@300epoch) | Top-1 Error<br/>(Best) | Model File |
 |------------|---------------------------------|------------:|----------:|-----------:|
 | ResNet18   | Reported Result \wo CutMix      | N/A         | 30.43     |
 |            | Ours                            | 29.674      | 29.56     | [Download](https://www.dropbox.com/s/jdqqbtrwp6mgk7k/model_best.pth.tar?dl=0) |
@@ -78,6 +80,8 @@ $ python train.py -c conf/cifar100_pyramid200.yaml
 | ResNet50   | Paper's Reported Result         | N/A         | 21.4      | N/A        |
 |            | Author's Code(Our Re-run)       | 21.768      | 21.586    | N/A        |
 |            | Our Re-implementation           | 21.524      | 21.340    | [Download(21.25)](https://www.dropbox.com/s/nqell4bh5oj68q1/model_best.pth.tar?dl=0) |
+| ResNet200  | Our Re-implementation           | 
+|            | + Fast AutoAugment              | 19.058      | 18.858    | 
 
 ```bash
 $ python train.py -c conf/imagenet_resnet50.yaml
@@ -100,3 +104,5 @@ We ran 5 independent experiments on ResNet50.
   - Implementation : https://github.com/clovaai/CutMix-PyTorch
 - ShakeDrop
   - https://github.com/owruby/shake-drop_pytorch
+- Fast AutoAugment
+  - https://github.com/kakaobrain/fast-autoaugment
