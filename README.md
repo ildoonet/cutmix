@@ -1,5 +1,7 @@
 # cutmix
 
+<img src="https://github.com/clovaai/CutMix-PyTorch/raw/master/img1.PNG" width=50% />
+
 a Ready-to-use PyTorch Extension of Unofficial CutMix Implementations.
 
 This re-implementation is improved in some parts,
