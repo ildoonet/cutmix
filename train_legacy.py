@@ -4,6 +4,7 @@ import os
 import shutil
 import time
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -16,17 +17,18 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 from sklearn.model_selection._split import StratifiedShuffleSplit
 from theconf.argument_parser import ConfigArgumentParser
+from theconf import Config as C
 from torch.utils.data.dataset import Subset
 from tqdm._tqdm import tqdm
+from warmup_scheduler.scheduler import GradualWarmupScheduler
 
+from lr_scheduler import adjust_learning_rate_resnet, adjust_learning_rate_pyramid
 from network import resnet as RN
 import network.pyramidnet as PYRM
 from network.wideresnet import WideResNet as WRN
 import utils
 import warnings
 
-from cutmix.cutmix import CutMix
-from cutmix.utils import CutMixCrossEntropyLoss
 from autoaug.archive import fa_reduced_cifar10, fa_reduced_imagenet, autoaug_paper_cifar10, autoaug_policy
 from autoaug.augmentations import Augmentation
 
@@ -106,7 +108,7 @@ def main():
             ds_test = datasets.CIFAR100(args.cifarpath, train=False, transform=transform_test)
 
             train_loader = torch.utils.data.DataLoader(
-                CutMix(ds_train, 100, beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num),
+                ds_train,
                 batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
             tval_loader = torch.utils.data.DataLoader(ds_valid,
                  batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True)
@@ -126,8 +128,7 @@ def main():
                 ds_valid = Subset(ds_train, [])
 
             train_loader = torch.utils.data.DataLoader(
-                CutMix(ds_train, 10,
-                beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num),
+                ds_train,
                 batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
             tval_loader = torch.utils.data.DataLoader(ds_valid,
                 batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True)
@@ -188,7 +189,6 @@ def main():
         else:
             valid_dataset = Subset(train_dataset, [])
 
-        train_dataset = CutMix(train_dataset, 1000, beta=args.cutmix_beta, prob=args.cutmix_prob, num_mix=args.cutmix_num)
         train_sampler = None
 
         train_loader = torch.utils.data.DataLoader(
@@ -223,14 +223,30 @@ def main():
     print('the number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
 
     # define loss function (criterion) and optimizer
-    criterion = CutMixCrossEntropyLoss(True)
+    criterion = nn.CrossEntropyLoss().cuda()
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
-                                weight_decay=1e-4, nesterov=True)
-    cudnn.benchmark = True
+                                weight_decay=C.get()['weight_decay'], nesterov=True)
+    lr_scheduler_type = C.get()['lr_schedule'].get('type', 'cosine')
+    if lr_scheduler_type == 'cosine':
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=C.get()['epochs'], eta_min=0.)
+    elif lr_scheduler_type == 'resnet':
+        scheduler = adjust_learning_rate_resnet(optimizer)
+    elif lr_scheduler_type == 'pyramid':
+        scheduler = adjust_learning_rate_pyramid(optimizer, C.get()['epochs'])
+    else:
+        raise ValueError('invalid lr_schduler=%s' % lr_scheduler_type)
+
+    if C.get()['lr_schedule'].get('warmup', None):
+        scheduler = GradualWarmupScheduler(
+            optimizer,
+            multiplier=C.get()['lr_schedule']['warmup']['multiplier'],
+            total_epoch=C.get()['lr_schedule']['warmup']['epoch'],
+            after_scheduler=scheduler
+        )
 
     for epoch in range(0, args.epochs):
-        adjust_learning_rate(optimizer, epoch)
+        scheduler.step(epoch)
 
         # train for one epoch
         model.train()
@@ -284,8 +300,24 @@ def run_epoch(loader, model, criterion, optimizer, epoch, tag):
 
         input, target = input.cuda(), target.cuda()
 
-        output = model(input)
-        loss = criterion(output, target)
+        r = np.random.rand(1)
+        if args.cutmix_beta > 0 and r < args.cutmix_prob and tag == 'train':
+            # mixed sample
+            rand_index = torch.randperm(input.size()[0]).cuda()
+            target_a = target
+            target_b = target[rand_index]
+
+            lam = np.random.beta(args.cutmix_beta, args.cutmix_beta)
+            bbx1, bby1, bbx2, bby2 = rand_bbox(input.size(), lam)
+            input[:, :, bbx1:bbx2, bby1:bby2] = input[rand_index, :, bbx1:bbx2, bby1:bby2]
+            # adjust lambda to exactly match pixel ratio
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (input.size()[-1] * input.size()[-2]))
+
+            output = model(input)
+            loss = criterion(output, target_a) * lam + criterion(output, target_b) * (1. - lam)
+        else:
+            output = model(input)
+            loss = criterion(output, target)
 
         # measure accuracy and record loss
         losses.update(loss.item(), input.size(0))
@@ -299,6 +331,8 @@ def run_epoch(loader, model, criterion, optimizer, epoch, tag):
             # compute gradient and do SGD step
             optimizer.zero_grad()
             loss.backward()
+            if C.get()['gradient_clip'] > 0:
+                nn.utils.clip_grad_norm_(model.parameters(), C.get()['gradient_clip'])
             optimizer.step()
         else:
             del loss, output
@@ -347,27 +381,30 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-def adjust_learning_rate(optimizer, epoch):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    if args.dataset.startswith('cifar'):
-        lr = args.lr * (0.1 ** (epoch // (args.epochs * 0.5))) * (0.1 ** (epoch // (args.epochs * 0.75)))
-    elif args.dataset == 'imagenet':
-        if args.epochs == 300:
-            lr = args.lr * (0.1 ** (epoch // 75))
-        else:
-            lr = args.lr * (0.1 ** (epoch // 30))
-    else:
-        raise ValueError(args.dataset)
-
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
-
 def get_learning_rate(optimizer):
     lr = []
     for param_group in optimizer.param_groups:
         lr += [param_group['lr']]
     return lr
+
+
+def rand_bbox(size, lam):
+    W = size[2]
+    H = size[3]
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = np.int(W * cut_rat)
+    cut_h = np.int(H * cut_rat)
+
+    # uniform
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+
+    return bbx1, bby1, bbx2, bby2
 
 
 def accuracy(output, target, topk=(1,)):

@@ -1,6 +1,6 @@
 dataset: imagenet
 net_type: resnet
-depth: 34
+depth: 200
 
 epochs: 300
 batch_size: 256

@@ -1,19 +1,17 @@
 dataset: cifar100
 net_type: pyramidnet
-depth: 200
-alpha: 240
+depth: 272
+alpha: 200
 
-epochs: 300
+epochs: 1800
 batch_size: 64
-lr: 0.25
+lr: 0.05
 momentum: 0.9
 lr_schedule:
   type: 'pyramid'
 
-gradient_clip: 0
-weight_decay: 0.0001
-
-cutout: 0
+gradient_clip: 5
+weight_decay: 0.00005
 
 cutmix:
   beta: 1.0

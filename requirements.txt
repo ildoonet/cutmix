@@ -1,1 +1,3 @@
 git+https://github.com/wbaek/theconf
+sklearn
+git+https://github.com/ildoonet/pytorch-gradual-warmup-lr.git
