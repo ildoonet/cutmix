@@ -40,10 +40,10 @@ from cutmix.utils import CutMixCrossEntropyLoss
 ...
 
 dataset = datasets.CIFAR100(args.cifarpath, train=True, download=True, transform=transform_train)
-dataset = CutMix(dataset, num_class=100, beta=1.0, prob=0.5, num_mix=2)    # this is paper's original setting for cifar.
+dataset = CutMix(dataset, num_class=100, beta=1.0, prob=0.5, num_mix=1)    # this is paper's original setting for cifar. you can mix more than 2 images using `num_mix`.
 ...
 
-criterion = CutMixCrossEntropyLoss(True)
+criterion = CutMixCrossEntropyLoss(True)    # this is for soft targets; not required for torch >= 1.10.0.
 for _ in range(num_epoch):
     for input, target in loader:    # input is cutmixed image's normalized tensor and target is soft-label which made by mixing 2 or more labels.
         output = model(input)
